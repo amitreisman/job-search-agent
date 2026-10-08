@@ -1,0 +1,415 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Search Agent</title>
+<meta name="description" content="An agent-based system that watches company job boards, scores every role against a CV with an explainable breakdown, and prepares the application while a human stays in control.">
+<style>
+:root{
+  --bg:#f6f6f2; --surface:#ffffff; --ink:#15171c; --muted:#5b626d; --line:#e2e2db; --accent:#0b8a5a; --accent-ink:#ffffff; --accent-soft:#e2f4ec;
+  --warn:#b4540a; --warn-soft:#fbeedf; --bar:#dcdfd8; --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 28px rgba(0,0,0,.06);
+  --chat:#dfe9d8; --bubble:#ffffff; --bubble-me:#d6f1c8; --tgbtn:rgba(30,50,40,.09);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0e1013;--surface:#16191e;--ink:#ecebe5;--muted:#9ba2ad;--line:#252a31;--accent:#3ccf91;--accent-ink:#06150e;--accent-soft:#11281e;--warn:#f0a35e;--warn-soft:#2b1f12;--bar:#2a2f37;--shadow:none;--chat:#17212b;--bubble:#222f3d;--bubble-me:#2b5278;--tgbtn:rgba(255,255,255,.1)}
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;justify-content:space-between;align-items:center;height:56px;font-size:14px}
+header.top strong{display:flex;align-items:center;gap:8px}
+.logo{width:22px;height:22px;border-radius:7px;background:var(--accent);display:inline-block;position:relative}
+.logo:after{content:"";position:absolute;inset:6px;border:2px solid var(--accent-ink);border-radius:50%}
+header.top nav a{margin-left:20px;color:var(--muted);text-decoration:none}
+header.top nav a:hover{color:var(--ink)}
+.hero{padding:56px 0 20px;background:radial-gradient(900px 300px at 85% -10%,var(--accent-soft),transparent 70%)}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(34px,5.6vw,58px);line-height:1.05;margin:12px 0 18px;letter-spacing:-.03em;max-width:17ch}
+.lede{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:58ch;margin:0}
+.cta{display:flex;gap:12px;margin:26px 0 0;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-weight:600;font-size:15px;border-radius:12px;padding:12px 18px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:34px 0 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.stat b{display:block;font-size:32px;letter-spacing:-.03em;line-height:1.1}
+.stat span{font-size:13px;color:var(--muted)}
+section{padding:54px 0}
+h2{font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:0 0 8px;line-height:1.15}
+.sub{color:var(--muted);margin:0 0 26px;max-width:66ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.grid .card h3{margin:0 0 6px;font-size:17px}
+.grid .card p{margin:0;color:var(--muted);font-size:15px}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:3px 11px;background:var(--accent-soft);color:var(--accent);margin-bottom:10px}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.diagram{overflow-x:auto}
+.diagram svg{min-width:780px;width:100%;height:auto;display:block}
+svg text{font-family:inherit}
+/* try-it */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
+.chip{min-height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 15px;border-radius:99px;font:inherit;font-size:14px;cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.demo{display:grid;grid-template-columns:372px minmax(0,1fr);gap:34px;align-items:start}
+@media(max-width:900px){.demo{grid-template-columns:1fr;justify-items:center}.demo>.side{width:100%}}
+.phone{width:372px;max-width:100%;height:700px;border-radius:44px;background:#0d0f12;padding:10px;box-shadow:0 24px 60px rgba(0,0,0,.25);position:relative}
+.screen{height:100%;border-radius:34px;overflow:hidden;background:var(--chat);display:flex;flex-direction:column}
+.tg-head{display:flex;align-items:center;gap:10px;padding:34px 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:14px}
+.tg-head b{display:block;font-size:15px;line-height:1.2}.tg-head small{color:var(--muted);font-size:12px}
+.chat{flex:1;overflow-y:auto;padding:12px 10px 16px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.b{background:var(--bubble);border-radius:6px 16px 16px 16px;padding:9px 11px;max-width:94%;font-size:14px;line-height:1.45;align-self:flex-start;box-shadow:0 1px 1px rgba(0,0,0,.06);animation:pop .25s ease both}
+.b.me{background:var(--bubble-me);align-self:flex-end;border-radius:16px 6px 16px 16px}
+.b small{color:var(--muted)}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.report-bar{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin-bottom:7px}
+.report-bar i{height:9px;border-radius:2px;background:var(--accent)}
+.fit{display:inline-block;font-weight:700;color:var(--accent)}
+.job-card{padding:0;overflow:hidden;width:94%;cursor:pointer}
+.job-card .body{padding:10px 11px 8px}
+.job-card[aria-current="true"]{outline:2px solid var(--accent)}
+.ttl{font-weight:700;font-size:14.5px}
+.new{font-size:11px;font-weight:800;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 6px;margin-right:6px;vertical-align:1px}
+.tgb{display:grid;gap:4px;padding:0 6px 6px}
+.tgb .row{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.tgb button,.tgb a{font:inherit;font-size:13px;font-weight:600;text-align:center;text-decoration:none;color:var(--ink);background:var(--tgbtn);border:0;border-radius:8px;padding:8px 6px;min-height:44px;display:grid;place-items:center;cursor:pointer;transition:.12s}
+.tgb button:hover,.tgb a:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.doc{display:flex;gap:10px;align-items:center;cursor:pointer;border:0;background:none;font:inherit;color:inherit;text-align:left;padding:0}
+.doc .ic{width:40px;height:46px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:11px;flex:none}
+.letter{white-space:pre-wrap;font-size:13.5px}
+.copy{margin-top:8px;font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:5px 10px;cursor:pointer}
+.typing{display:flex;gap:4px;padding:12px 14px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.tg-foot{padding:10px 14px 18px;background:var(--surface);border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;text-align:center}
+.side h3{margin:0 0 4px;font-size:20px;letter-spacing:-.01em}
+.side .meta{color:var(--muted);font-size:14px}
+.total{font-size:50px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.score-row{display:grid;grid-template-columns:128px 1fr 32px;gap:10px;align-items:center;font-size:14px;margin:8px 0}
+.bar{height:9px;background:var(--bar);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s}
+h4{margin:16px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+ul.clean{margin:6px 0 0;padding-left:18px;color:var(--muted);font-size:14.5px}
+ul.clean li{margin:4px 0}
+.how{margin-top:16px;display:grid;gap:10px}
+.step{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--muted)}
+.step b{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:13px}
+details{margin-top:12px}summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14.5px}
+pre{margin:8px 0 0;white-space:pre-wrap;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);max-height:300px;overflow:auto}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;margin:18px 0 0;max-width:70ch}
+
+.live{margin:0 0 22px}
+.live h3{margin:0 0 4px;font-size:20px;letter-spacing:-.01em}
+.meta{color:var(--muted);font-size:14px}
+.drop{margin:14px 0 8px;border:2px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;display:grid;gap:4px;transition:.15s;background:color-mix(in srgb,var(--bg) 50%,transparent)}
+.drop:hover,.drop.over,.drop:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.drop.has{border-style:solid;border-color:var(--accent)}
+.live details{margin:6px 0}
+textarea,.live input[type=text]{width:100%;font:inherit;font-size:14.5px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);color:var(--ink)}
+textarea{min-height:120px;resize:vertical;margin-top:8px}
+.field{display:grid;gap:5px;margin:10px 0;font-size:14px;font-weight:600}
+.field input{font-weight:400}
+.privacy{font-size:13px;color:var(--muted);background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin:12px 0}
+.linkbtn{font:inherit;font-size:13px;font-weight:600;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.live-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn[disabled]{opacity:.55;cursor:progress}
+.stages{display:grid;gap:8px;margin:16px 0 0}
+.stage{display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted)}
+.stage i{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800}
+.stage.active{color:var(--ink)}.stage.active i{border-color:var(--accent);border-top-color:transparent;animation:spin .9s linear infinite}
+.stage.done{color:var(--ink)}.stage.done i{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{color:#b3261e;font-size:14px;margin:10px 0 0;min-height:0}
+.sample-label{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 0 10px}
+dialog{border:0;border-radius:16px;padding:0;background:var(--surface);max-width:min(92vw,760px);width:100%;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(8,10,12,.65);backdrop-filter:blur(3px)}
+dialog img{display:block;width:100%;height:auto;background:#fff}
+dialog .bar-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:14px;border-bottom:1px solid var(--line)}
+dialog .bar-top button{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+footer{padding:36px 0 70px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><strong><span class="logo" aria-hidden="true"></span>Job Search Agent</strong>
+<nav><a href="#try">Try it</a><a href="#how">How it works</a><a href="#decisions">Decisions</a><a href="#limits">Limits</a></nav></div></header>
+
+<main>
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">Agent-based system, built end to end</div>
+  <h1>An agent that finds the jobs. I make the decisions.</h1>
+  <p class="lede">It watches <span id="n-co">47</span> companies' job boards, scores every role against a CV with an explainable breakdown, and prepares a tailored CV and cover letter on request. It never applies or messages anyone by itself.</p>
+  <div class="cta"><a class="btn primary" href="#try">Try the live flow</a><a class="btn" href="#decisions">Read the design decisions</a></div>
+  <div class="stats" id="stats"></div>
+</div></div>
+
+<section id="try"><div class="wrap">
+  <h2>Try it: the real flow, on your phone</h2>
+  <p class="sub">I use it through Telegram. Below is that exact experience, with a <strong>fictional candidate</strong> run through the real pipeline against real, public job boards. Tap the buttons, or use your own CV below.</p>
+  <div class="card live" id="live" hidden>
+    <h3>Use your own CV</h3>
+    <p class="meta">Upload it and name the role you want. The agent scans the same company job boards, scores real roles against your CV, and generates your tailored CV and cover letter.</p>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload your CV"><input id="file" type="file" accept=".pdf,.docx,.txt,.md" hidden><b id="drop-t">Drop your CV here or click to browse</b><span class="meta">PDF, Word (.docx) or text · up to 2 MB</span></div>
+    <details><summary>Paste text instead</summary><textarea id="paste" placeholder="Paste your CV text here"></textarea></details>
+    <label class="field">Role you are looking for (optional)<input id="role" type="text" maxlength="60" placeholder="e.g. Product Manager, Backend Engineer, Data Analyst"></label>
+    <p class="privacy">Your CV is processed in memory for this session only, sent to Anthropic's Claude API for analysis, never stored, and erased after 60 minutes. <button class="linkbtn" id="erase" hidden>Erase it now</button></p>
+    <div class="live-actions"><button class="btn primary" id="go">Find my matches</button><span class="meta" id="live-hint">Takes about a minute. Covers roles in Israel.</span></div>
+    <div class="stages" id="stages" hidden>
+      <div class="stage" id="st1"><i>1</i><span>Reading your CV</span></div>
+      <div class="stage" id="st2"><i>2</i><span>Scanning company job boards</span></div>
+      <div class="stage" id="st3"><i>3</i><span>Scoring the best roles</span></div>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+  </div>
+  <div class="sample-label" id="sample-label" hidden>Or try a sample candidate</div>
+  <div class="chips" id="chips" role="group" aria-label="Choose a sample candidate"></div>
+  <div class="demo">
+    <div class="phone"><div class="screen">
+      <div class="tg-head"><div class="avatar">JA</div><div><b>Job Agent</b><small>bot</small></div></div>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <div class="tg-foot">Demo. The real bot speaks Hebrew.</div>
+    </div></div>
+    <div class="side">
+      <div class="card" id="hood"></div>
+      <details class="card sample-only" style="margin-top:14px"><summary>Candidate profile (the only thing that changes per person)</summary><pre id="cfg"></pre></details>
+      <details class="card sample-only" style="margin-top:14px"><summary>Sample CV the agent works from (fictional)</summary><pre id="cv"></pre></details>
+    </div>
+  </div>
+  <p class="note">Live mode (paste your own CV) needs a hosted backend, a model budget and careful handling of personal data. It is the next step; the code already runs from a profile file.</p>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <h2>How it works</h2>
+  <p class="sub">A pipeline of small, single-purpose agents with one deliberate human gate. Rules do the cheap work; the model is used only where judgement is needed.</p>
+  <div class="card diagram">
+  <svg viewBox="0 0 980 230" role="img" aria-label="Pipeline: job boards, Scout, Assessor, report, human gate, Tailor">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <g font-size="14" fill="var(--ink)">
+      <rect x="10" y="40" width="140" height="84" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="80" y="72" text-anchor="middle" font-weight="600">Job boards</text><text x="80" y="92" text-anchor="middle" font-size="12" fill="var(--muted)">9 hiring systems</text><text x="80" y="108" text-anchor="middle" font-size="12" fill="var(--muted)">public APIs only</text>
+      <rect x="190" y="40" width="140" height="84" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="260" y="72" text-anchor="middle" font-weight="600">Scout</text><text x="260" y="92" text-anchor="middle" font-size="12" fill="var(--muted)">filter, dedupe,</text><text x="260" y="108" text-anchor="middle" font-size="12" fill="var(--muted)">track what is open</text>
+      <rect x="370" y="40" width="140" height="84" rx="12" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="440" y="72" text-anchor="middle" font-weight="600">Assessor</text><text x="440" y="92" text-anchor="middle" font-size="12" fill="var(--muted)">LLM, 5-part score</text><text x="440" y="108" text-anchor="middle" font-size="12" fill="var(--muted)">hard filters</text>
+      <rect x="550" y="40" width="140" height="84" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="620" y="72" text-anchor="middle" font-weight="600">Report</text><text x="620" y="92" text-anchor="middle" font-size="12" fill="var(--muted)">every open job,</text><text x="620" y="108" text-anchor="middle" font-size="12" fill="var(--muted)">new ones marked</text>
+      <rect x="730" y="40" width="110" height="84" rx="12" fill="var(--warn-soft)" stroke="var(--warn)" stroke-dasharray="5 4" stroke-width="2"/><text x="785" y="72" text-anchor="middle" font-weight="600" fill="var(--warn)">Human gate</text><text x="785" y="92" text-anchor="middle" font-size="12" fill="var(--warn)">I decide and</text><text x="785" y="108" text-anchor="middle" font-size="12" fill="var(--warn)">tap a button</text>
+      <rect x="870" y="40" width="100" height="84" rx="12" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="920" y="72" text-anchor="middle" font-weight="600">Tailor</text><text x="920" y="92" text-anchor="middle" font-size="12" fill="var(--muted)">CV PDF +</text><text x="920" y="108" text-anchor="middle" font-size="12" fill="var(--muted)">cover letter</text>
+    </g>
+    <g stroke="var(--muted)" stroke-width="1.6" fill="none" marker-end="url(#ar)"><path d="M150 82H186"/><path d="M330 82H366"/><path d="M510 82H546"/><path d="M690 82H726"/><path d="M840 82H866"/></g>
+    <g font-size="13" fill="var(--muted)" text-anchor="middle">
+      <text x="490" y="172">Every decision is written to a trace log: what was seen, why it scored what it did</text>
+      <text x="490" y="196">Applying and recruiter outreach stay manual</text>
+    </g>
+  </svg>
+  </div>
+</div></section>
+
+<section id="decisions"><div class="wrap">
+  <h2>Design decisions</h2>
+  <p class="sub">The interesting part of an agent is rarely the model call. It is what the system is allowed to do, and what happens when it is wrong.</p>
+  <div class="grid">
+    <div class="card"><span class="tag">Control</span><h3>Human in the loop by design</h3><p>The agent drafts; I decide. Buttons generate a CV or letter on demand, and applying, messaging recruiters and sending anything stay manual. Autonomy is a product decision, not a default.</p></div>
+    <div class="card"><span class="tag">Trust</span><h3>Grounded generation, not free writing</h3><p>The CV is built from a verified facts file with a "do not claim" list. Names, titles, dates and education are fixed in code, so the model only writes bullets. A real catch: it once turned "probably Dynamics 365" into a stated fact, so the rule now forbids stating inferences.</p></div>
+    <div class="card"><span class="tag">Explainability</span><h3>A score you can argue with</h3><p>Five weighted components with strengths and gaps that must cite the CV. Director-level roles are a hard filter, so other components cannot rescue them.</p></div>
+    <div class="card"><span class="tag">Reliability</span><h3>Failures never hide a job</h3><p>A broken job board does not stop the run, and its jobs stay in the report. If a score fails, the job shows as "not assessed" instead of vanishing. Reports always list every open match, so the output is a state, not a diff.</p></div>
+    <div class="card"><span class="tag">Cost</span><h3>Rules first, model second</h3><p>Title, location and age filters run for free. The model scores only survivors, once per job. No new jobs means no report and no model calls.</p></div>
+    <div class="card"><span class="tag warn">Deliberately not built</span><h3>LinkedIn scraping and auto-messaging</h3><p>Scraping breaks the platform's terms and risks the account; automated outreach damages the relationship it is meant to start. The agent uses companies' public job APIs instead.</p></div>
+  </div>
+</div></section>
+
+<section id="limits"><div class="wrap">
+  <h2>Limits and what is next</h2>
+  <div class="grid">
+    <div class="card"><h3>Scores are not calibrated yet</h3><p>They come from model judgement against a written rubric. Next: compare them with human judgement on a labelled set and report agreement.</p></div>
+    <div class="card"><h3>Coverage is partial</h3><p>It covers companies whose job boards expose a public API. Sites that render everything in the browser are not covered yet.</p></div>
+    <div class="card"><h3>Some posting dates are approximate</h3><p>A few boards only expose a last-updated time, so a refreshed old job can look newer than it is.</p></div>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">Built with the Claude Agent SDK, Python, SQLite and Telegram. Generated <span id="gen"></span>. Candidates shown are fictional; job data comes from public company job boards.</div></footer>
+
+<dialog id="dlg" aria-label="Tailored CV preview"><div class="bar-top"><span id="dlg-title"></span><span style="display:flex;gap:8px"><a class="btn" id="dlg-dl" download hidden>Download PDF</a><button id="dlg-close">Close</button></span></div><img id="dlg-img" alt="Tailored one-page CV preview"></dialog>
+
+<script>
+const DATA = /*__DATA__*/null;
+const $ = (s, e = document) => e.querySelector(s);
+const el = (tag, props = {}, kids = []) => { const e = document.createElement(tag); Object.assign(e, props); kids.forEach(k => e.append(k)); return e; };
+const safeUrl = u => (typeof u === "string" && u.startsWith("https://")) ? u : "#";
+const LABELS = {role_seniority: "Role & seniority", domain: "Domain", skills: "Skills", experience: "Experience", location: "Location"};
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const days = d => Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 864e5));
+const ago = d => { const n = days(d); return n === 0 ? "today" : n === 1 ? "1 day ago" : n + " days ago"; };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const S = DATA.stats;
+$("#n-co").textContent = S.companies; $("#gen").textContent = S.generated;
+[[S.companies, "companies scanned"], [S.hiring_systems, "hiring systems integrated"], [S.scans_per_day + " / day", "automatic scans"], [S.passing, "roles above the fit threshold today"]]
+  .forEach(([n, t]) => $("#stats").append(el("div", {className: "stat"}, [el("b", {textContent: n}), el("span", {textContent: t})])));
+
+function bars(scores) {
+  const w = el("div");
+  Object.entries(scores).forEach(([k, v]) => w.append(el("div", {className: "score-row"}, [el("span", {textContent: LABELS[k] || k}),
+    el("div", {className: "bar"}, [Object.assign(el("i"), {style: `width:${Math.max(0, Math.min(100, v))}%`})]), el("span", {textContent: v})])));
+  return w;
+}
+const list = (title, items) => { const f = document.createDocumentFragment(); f.append(el("h4", {textContent: title}), el("ul", {className: "clean"}, items.map(t => el("li", {textContent: t})))); return f; };
+
+const API = (window.JOBAGENT_API ?? "/*__API__*/").replace(/\/$/, "");
+let mode = "sample", P = null, jobs = [], runId = 0, live = null;
+const chat = $("#chat");
+const scroll = () => chat.scrollTo({top: chat.scrollHeight, behavior: reduce ? "auto" : "smooth"});
+const add = (node, cls = "") => { const b = el("div", {className: "b " + cls}, [node]); chat.append(b); scroll(); return b; };
+async function typing(ms) { const t = add(el("div", {className: "typing"}, [el("i"), el("i"), el("i")])); await wait(reduce ? 0 : ms); t.remove(); }
+async function api(path, opts) {
+  const r = await fetch(API + path, opts); const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || "Something went wrong. Please try again.");
+  return d;
+}
+
+function hood(i) {
+  const j = jobs[i]; if (!j) return;
+  document.querySelectorAll(".job-card").forEach((c, k) => c.setAttribute("aria-current", k === i));
+  $("#hood").replaceChildren(
+    el("div", {className: "meta", textContent: `Under the hood · ${j.company} · ${j.location} · posted ${ago(j.posted)}`}),
+    el("h3", {textContent: j.title, style: "margin:6px 0 10px"}),
+    el("div", {style: "display:flex;gap:14px;align-items:baseline"}, [el("span", {className: "total", textContent: j.total + "%"}), el("span", {className: "meta", textContent: "weighted fit score"})]),
+    bars(j.scores), list("Strengths (cited from the CV)", j.strengths), list("Gaps (named from the posting)", j.gaps),
+    el("p", {className: "meta", style: "margin:14px 0 0"}, [el("a", {href: safeUrl(j.url), textContent: "Open the public posting", target: "_blank", rel: "noopener"})]));
+}
+
+function jobCard(j, i, isNew) {
+  const open = el("a", {href: safeUrl(j.url), target: "_blank", rel: "noopener", textContent: "Open job ↗"});
+  const cv = el("button", {textContent: "Tailor CV", onclick: e => { e.stopPropagation(); act("cv", i); }});
+  const cl = el("button", {textContent: "Cover letter", onclick: e => { e.stopPropagation(); act("cl", i); }});
+  const body = el("div", {className: "body"}, [
+    el("div", {}, [isNew ? el("span", {className: "new", textContent: "NEW"}) : "", el("span", {className: "ttl", textContent: j.title})]),
+    el("div", {}, [document.createTextNode(`${j.company} · ${ago(j.posted)} · `), el("span", {className: "fit", textContent: `Fit ${j.total}%`})]),
+    el("div", {}, [el("small", {textContent: j.one_line})])]);
+  chat.append(el("div", {className: "b job-card", onclick: () => hood(i)}, [body, el("div", {className: "tgb"}, [open, el("div", {className: "row"}, [cv, cl])])]));
+}
+
+function showCv(file, png, pdf) {
+  add(el("button", {className: "doc", onclick: () => openCv(file, png, pdf)}, [el("div", {className: "ic", textContent: "PDF"}),
+    el("div", {}, [el("b", {textContent: file}), el("br"), el("small", {textContent: "1 page · tap to preview"})])]));
+}
+function showLetter(text) {
+  const c = el("button", {className: "copy", textContent: "Copy text", onclick: async () => { try { await navigator.clipboard.writeText(text); c.textContent = "Copied"; } catch { c.textContent = "Select and copy"; } setTimeout(() => c.textContent = "Copy text", 1800); }});
+  add(el("div", {}, [el("div", {className: "letter", textContent: text}), c]));
+}
+function openCv(file, png, pdf) {
+  $("#dlg-title").textContent = file; $("#dlg-img").src = png;
+  const dl = $("#dlg-dl"); if (pdf) { dl.href = pdf; dl.download = file; dl.hidden = false; } else dl.hidden = true;
+  $("#dlg").showModal();
+}
+$("#dlg-close").onclick = () => $("#dlg").close();
+$("#dlg").addEventListener("click", e => { if (e.target.id === "dlg") e.target.close(); });
+
+async function act(kind, i) {
+  const j = jobs[i], my = runId;
+  add(document.createTextNode(kind === "cv" ? `Tailor CV · ${j.company}` : `Cover letter · ${j.company}`), "me");
+  hood(i);
+  if (mode === "live") {
+    const t = add(el("div", {className: "typing"}, [el("i"), el("i"), el("i")]));
+    try {
+      const r = await api(`/api/tailor/${live.sid}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({job_id: j.id, kind: kind === "cv" ? "cv" : "letter"})});
+      if (my !== runId) return; t.remove();
+      kind === "cv" ? showCv(r.filename, r.png, r.pdf) : showLetter(r.text);
+    } catch (e) { t.remove(); add(document.createTextNode(e.message)); }
+    return;
+  }
+  await typing(1300); if (my !== runId) return;
+  if (i !== 0) {  // sample mode pre-generates artefacts only for the top match
+    add(el("div", {}, [document.createTextNode("In live mode this works for any job. This sample pre-generated it for the top match only, so try "), el("b", {textContent: jobs[0].company}), document.createTextNode(".")]));
+    return;
+  }
+  if (kind === "cv") showCv(`${P.display.replace(/\s+/g, "_")}_${j.company.replace(/\W+/g, "_")}.pdf`, P.show.cv_png, null);
+  else showLetter(P.show.letter);
+}
+
+function drawReport(title, list, extra) {
+  runId++; jobs = list; chat.replaceChildren();
+  add(el("div", {}, [el("div", {className: "report-bar"}, Array.from({length: 10}, () => el("i"))), el("b", {textContent: title}), el("br"),
+    el("small", {textContent: `${new Date().toLocaleDateString("en-GB", {day: "numeric", month: "short"})} · ${extra}`})]));
+  jobs.forEach((j, k) => jobCard(j, k, k < 2));
+  if (jobs.length) hood(0);
+  add(el("div", {}, [el("small", {textContent: "Tap a card to see why it scored that way. Tap Tailor CV or Cover letter."})]));
+}
+
+function renderPersona(i) {
+  mode = "sample"; P = DATA.personas[i];
+  document.querySelectorAll(".chip").forEach((c, k) => c.setAttribute("aria-pressed", k === i));
+  document.querySelectorAll(".sample-only").forEach(e => e.hidden = false);
+  $("#cv").textContent = P.resume; $("#cfg").textContent = P.profile;
+  const list = P.jobs.filter(j => !j.hard && j.total >= 50).slice(0, 3);
+  drawReport("Report #7", list, `${list.length} open roles · ${Math.min(2, list.length)} new`);
+}
+DATA.personas.forEach((p, i) => $("#chips").append(el("button", {className: "chip", textContent: `${p.display} · ${p.query}`, onclick: () => renderPersona(i)})));
+
+// ---------- live mode ----------
+const setStage = (n, state, text) => { const s = $("#st" + n); s.className = "stage " + state; if (text) s.lastElementChild.textContent = text; if (state === "done") s.firstElementChild.textContent = "✓"; };
+const fail = msg => { $("#err").textContent = msg; $("#go").disabled = false; $("#stages").hidden = true; };
+function pickFile(f) {
+  $("#file")._f = f; $("#drop").classList.toggle("has", !!f);
+  $("#drop-t").textContent = f ? f.name : "Drop your CV here or click to browse";
+}
+async function startLive() {
+  const f = $("#file")._f, text = $("#paste").value.trim();
+  $("#err").textContent = "";
+  if (!f && !text) return fail("Upload a CV or paste its text.");
+  $("#go").disabled = true; $("#stages").hidden = false;
+  ["#st1", "#st2", "#st3"].forEach((s, k) => { $(s).className = "stage"; $(s).firstElementChild.textContent = k + 1; });
+  $("#st2").lastElementChild.textContent = "Scanning company job boards"; $("#st3").lastElementChild.textContent = "Scoring the best roles";
+  setStage(1, "active");
+  const fd = new FormData(); if (f) fd.append("file", f); else fd.append("text", text); fd.append("role", $("#role").value);
+  let r; try { r = await api("/api/profile", {method: "POST", body: fd}); } catch (e) { return fail(e.message); }
+  live = {sid: r.sid, name: r.name}; $("#erase").hidden = false;
+  setStage(1, "done", `Read ${r.name}'s CV · searching for "${r.query}"`); setStage(2, "active");
+  for (;;) {
+    await wait(2200);
+    let v; try { v = await api(`/api/matches/${live.sid}`); } catch (e) { return fail(e.message); }
+    if (v.status === "scanning") setStage(2, "active", `Scanning company job boards ${v.progress.scanned || 0}/${v.progress.total || DATA.stats.companies}`);
+    else if (v.status === "assessing") { setStage(2, "done", `Scanned ${DATA.stats.companies} boards · ${v.progress.found} open roles match`); setStage(3, "active", `Scoring the best roles ${v.progress.done}/${v.progress.assessing}`); }
+    else if (v.status === "error") return fail(v.message);
+    else if (v.status === "done") {
+      setStage(2, "done"); setStage(3, "done", v.jobs.length ? `Scored ${v.jobs.length} roles` : "No matching roles right now");
+      $("#go").disabled = false; showLive(v); return;
+    }
+  }
+}
+function showLive(v) {
+  mode = "live";
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", "false"));
+  document.querySelectorAll(".sample-only").forEach(e => e.hidden = true);
+  const good = v.jobs.filter(j => !j.hard && j.total >= 50), list = (good.length ? good : v.jobs.filter(j => !j.hard)).slice(0, 4);
+  if (!list.length) { chat.replaceChildren(); add(el("div", {textContent: v.message || "No open roles matched this CV right now. Try naming a different role."})); $("#hood").replaceChildren(el("p", {className: "meta", textContent: "No matches to explain yet."})); return; }
+  drawReport(live.name.split(" ")[0] + "'s report", list, `${good.length} of ${v.jobs.length} scored roles above 50%`);
+  $("#try").scrollIntoView({behavior: reduce ? "auto" : "smooth"});
+}
+$("#go").onclick = startLive;
+$("#drop").onclick = () => $("#file").click();
+$("#drop").onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("#file").click(); } };
+$("#file").onchange = e => pickFile(e.target.files[0] || null);
+["dragenter", "dragover"].forEach(n => $("#drop").addEventListener(n, e => { e.preventDefault(); $("#drop").classList.add("over"); }));
+["dragleave", "drop"].forEach(n => $("#drop").addEventListener(n, e => { e.preventDefault(); $("#drop").classList.remove("over"); }));
+$("#drop").addEventListener("drop", e => { if (e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]); });
+$("#erase").onclick = async () => {
+  if (!confirm("Erase your CV from the server now? This cannot be undone.")) return;
+  try { await api(`/api/session/${live.sid}`, {method: "DELETE"}); } catch {}
+  live = null; pickFile(null); $("#paste").value = ""; $("#stages").hidden = true; $("#erase").hidden = true; renderPersona(0);
+  $("#err").textContent = "Your CV was erased from the server.";
+};
+
+renderPersona(0);
+fetch(API + "/api/health", {signal: AbortSignal.timeout(3500)}).then(r => r.ok ? r.json() : null).then(h => {
+  if (h && h.live) { $("#live").hidden = false; $("#sample-label").hidden = false; }
+}).catch(() => {});
+</script>
+</body>
+</html>
+
+

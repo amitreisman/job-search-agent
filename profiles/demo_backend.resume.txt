@@ -1,0 +1,21 @@
+﻿Dana Levi (SAMPLE PERSONA - fictional, for demonstration)
+Backend Software Engineer | Python, Go, PostgreSQL, AWS | Tel Aviv
+
+SUMMARY
+Backend engineer with five years building payment and billing services for B2B SaaS. I care about reliable APIs, clear ownership and boring, observable systems.
+
+EXPERIENCE
+Paylane (fintech startup) - Backend Engineer (2022-2026)
+- Built and owned the payment-intent and refunds services (Python, FastAPI, PostgreSQL), processing steady production traffic with idempotent retries and reconciliation jobs.
+- Designed an event-driven ledger on Kafka and moved nightly batch exports to streaming, cutting data latency for finance from a day to minutes.
+- Introduced structured logging, tracing and SLO dashboards; reduced on-call incidents through runbooks and better alerting.
+- Mentored two junior engineers and led code reviews for the payments team.
+Orbit Cloud - Software Engineer (2020-2022)
+- Developed REST APIs and background workers in Go for a multi-tenant cloud-cost product; wrote the first version of the usage-metering pipeline.
+- Containerized services with Docker and deployed on Kubernetes (EKS) with Terraform.
+
+EDUCATION
+B.Sc. Computer Science, Tel Aviv University (2016-2020)
+
+SKILLS
+Python, Go, SQL/PostgreSQL, Kafka, Redis, AWS (EKS, RDS, SQS), Docker, Kubernetes, Terraform, REST/gRPC, CI/CD, observability

@@ -1,0 +1,50 @@
+{
+  "name": "demo_design",
+  "display": "Maya Katz (sample persona)",
+  "resume_path": "profiles/demo_design.resume.txt",
+  "search_query": "product designer",
+  "title_include": "product designer|ux designer|ui designer|ux/ui|user experience|design lead|visual designer",
+  "title_exclude": "intern\\b|student|manager|director|head of|engineer|researcher|writer|motion|brand",
+  "target_role": "a Senior Product Designer (about 6 years)",
+  "domain_focus": "B2B SaaS, design systems, complex workflow and data-heavy products, fintech",
+  "language": "English",
+  "notify": false,
+  "max_assess": 14,
+  "max_age_days": 90,
+  "threshold": 50,
+  "seniority_flag": "director|vp\\b|vice president|head of|chief|principal|staff",
+  "location_regex": "israel|tel[ -]?aviv|herzliya|haifa|ramat|petah|ra'?anana|jerusalem|yokneam|netanya|rehovot|kfar|hod hasharon|rosh ha|beer|lod|modi",
+  "home": "Israel-based, central Israel (Tel Aviv area), hybrid is fine",
+  "too_senior_rule": "Director/VP/Head-of or Principal/Staff level or above",
+  "too_junior_rule": "an intern, student or entry-level role",
+  "weights": {
+    "role_seniority": 30,
+    "domain": 15,
+    "skills": 30,
+    "experience": 15,
+    "location": 10
+  },
+  "cv": {
+    "name": "Maya Katz",
+    "title_tag": "Senior Product Designer",
+    "contact": "maya.sample@example.com | Tel Aviv | Sample persona (fictional)",
+    "roles": [
+      {
+        "id": "clarity",
+        "title": "Clarity Analytics (B2B SaaS) - Senior Product Designer",
+        "dates": "2022-2026",
+        "bullets": "3-4"
+      },
+      {
+        "id": "flowdesk",
+        "title": "Flowdesk - Product Designer",
+        "dates": "2020-2022",
+        "bullets": "2"
+      }
+    ],
+    "education": [
+      "<b>B.Des. Visual Communication</b>, Shenkar College of Engineering and Design (2015-2019)"
+    ],
+    "interests": "Ceramics"
+  }
+}

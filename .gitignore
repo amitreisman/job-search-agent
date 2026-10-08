@@ -1,0 +1,9 @@
+﻿# private: never publish
+.env
+TELEGRAM_AGENT.txt
+data/
+profiles/amit.json
+# noise
+__pycache__/
+*.pyc
+*.log

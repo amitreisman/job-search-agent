@@ -1,0 +1,50 @@
+{
+  "name": "demo_data",
+  "display": "Noam Cohen (sample persona)",
+  "resume_path": "profiles/demo_data.resume.txt",
+  "search_query": "data analyst",
+  "title_include": "data analyst|business analyst|analytics|bi developer|bi analyst|product analyst",
+  "title_exclude": "intern\\b|student|manager|director|head of|engineer|scientist|support|sales|security|compliance|risk analyst|financial analyst",
+  "target_role": "a mid-level Data / Product Analyst (about 3 years)",
+  "domain_focus": "e-commerce, SaaS product analytics, fintech, marketplaces, growth and experimentation",
+  "language": "English",
+  "notify": false,
+  "max_assess": 14,
+  "max_age_days": 90,
+  "threshold": 50,
+  "seniority_flag": "director|vp\\b|vice president|head of|chief|principal|staff",
+  "location_regex": "israel|tel[ -]?aviv|herzliya|haifa|ramat|petah|ra'?anana|jerusalem|yokneam|netanya|rehovot|kfar|hod hasharon|rosh ha|beer|lod|modi",
+  "home": "Israel-based, central Israel (Tel Aviv area), hybrid is fine",
+  "too_senior_rule": "Director/VP/Head-of or Principal/Staff level or above",
+  "too_junior_rule": "an intern, student or entry-level role",
+  "weights": {
+    "role_seniority": 30,
+    "domain": 15,
+    "skills": 30,
+    "experience": 15,
+    "location": 10
+  },
+  "cv": {
+    "name": "Noam Cohen",
+    "title_tag": "Data Analyst",
+    "contact": "noam.sample@example.com | Tel Aviv | Sample persona (fictional)",
+    "roles": [
+      {
+        "id": "shopwave",
+        "title": "Shopwave (e-commerce marketplace) - Data Analyst",
+        "dates": "2023-2026",
+        "bullets": "3-4"
+      },
+      {
+        "id": "bright",
+        "title": "Bright Retail - Junior BI Analyst",
+        "dates": "2022-2023",
+        "bullets": "2"
+      }
+    ],
+    "education": [
+      "<b>B.A. Economics and Statistics</b>, Hebrew University (2018-2022)"
+    ],
+    "interests": "Chess"
+  }
+}

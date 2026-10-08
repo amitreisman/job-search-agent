@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pymupdf
+fonttools
+pypdf
+python-docx
+anthropic

@@ -1,0 +1,50 @@
+{
+  "name": "demo_backend",
+  "display": "Dana Levi (sample persona)",
+  "resume_path": "profiles/demo_backend.resume.txt",
+  "search_query": "backend engineer",
+  "title_include": "back-?end|software engineer|server engineer|platform engineer|python (developer|engineer)",
+  "title_exclude": "intern\\b|student|manager|director|head of|qa\\b|test|front-?end|support|sales|solutions|customer|security researcher|data scientist|ml |machine learning",
+  "target_role": "a mid-level Backend Software Engineer (about 5 years)",
+  "domain_focus": "fintech, payments, B2B SaaS, cloud and developer platforms, data infrastructure",
+  "language": "English",
+  "notify": false,
+  "max_assess": 14,
+  "max_age_days": 90,
+  "threshold": 50,
+  "seniority_flag": "director|vp\\b|vice president|head of|chief|principal|staff",
+  "location_regex": "israel|tel[ -]?aviv|herzliya|haifa|ramat|petah|ra'?anana|jerusalem|yokneam|netanya|rehovot|kfar|hod hasharon|rosh ha|beer|lod|modi",
+  "home": "Israel-based, central Israel (Tel Aviv area), hybrid is fine",
+  "too_senior_rule": "Director/VP/Head-of or Principal/Staff level or above",
+  "too_junior_rule": "an intern, student or entry-level role",
+  "weights": {
+    "role_seniority": 30,
+    "domain": 15,
+    "skills": 30,
+    "experience": 15,
+    "location": 10
+  },
+  "cv": {
+    "name": "Dana Levi",
+    "title_tag": "Backend Software Engineer",
+    "contact": "dana.sample@example.com | Tel Aviv | Sample persona (fictional)",
+    "roles": [
+      {
+        "id": "paylane",
+        "title": "Paylane (fintech startup) - Backend Engineer",
+        "dates": "2022-2026",
+        "bullets": "3-4"
+      },
+      {
+        "id": "orbit",
+        "title": "Orbit Cloud - Software Engineer",
+        "dates": "2020-2022",
+        "bullets": "2"
+      }
+    ],
+    "education": [
+      "<b>B.Sc. Computer Science</b>, Tel Aviv University (2016-2020)"
+    ],
+    "interests": "Climbing"
+  }
+}

@@ -1,0 +1,20 @@
+﻿Noam Cohen (SAMPLE PERSONA - fictional, for demonstration)
+Data Analyst | SQL, Python, Tableau, Experimentation | Tel Aviv
+
+SUMMARY
+Analyst with three years in e-commerce and SaaS growth teams. I turn messy event data into decisions: funnels, retention, pricing and A/B test readouts that product managers actually use.
+
+EXPERIENCE
+Shopwave (e-commerce marketplace) - Data Analyst (2023-2026)
+- Owned the weekly growth dashboard (Tableau, SQL on BigQuery) used by product and marketing leads; defined the activation and 30-day retention metrics.
+- Ran and analysed about 40 A/B tests (checkout, search ranking, promotions) and wrote decision memos with confidence intervals and clear recommendations.
+- Built a Python churn-risk model (logistic regression) that the CRM team used to target win-back campaigns.
+- Automated monthly reporting with dbt and Airflow, replacing manual spreadsheets.
+Bright Retail - Junior BI Analyst (2022-2023)
+- Maintained sales dashboards in Power BI and wrote SQL for ad-hoc requests from category managers.
+
+EDUCATION
+B.A. Economics and Statistics, Hebrew University (2018-2022)
+
+SKILLS
+SQL (BigQuery, PostgreSQL), Python (pandas, scikit-learn), Tableau, Power BI, dbt, Airflow, A/B testing, funnel and cohort analysis, Excel

@@ -1,0 +1,19 @@
+﻿Maya Katz (SAMPLE PERSONA - fictional, for demonstration)
+Senior Product Designer | Figma, Design Systems, B2B SaaS | Tel Aviv
+
+SUMMARY
+Product designer with six years designing workflow-heavy B2B products. I work from research to shipped UI, and I build the design systems that let teams move faster without losing consistency.
+
+EXPERIENCE
+Clarity Analytics (B2B SaaS) - Senior Product Designer (2022-2026)
+- Led design of a self-serve reporting builder used by finance teams, from user interviews through prototypes to launch; cut average time-to-first-report in usability tests.
+- Created and maintained the company design system in Figma (components, tokens, documentation) adopted by four product squads and the front-end team.
+- Partnered with product managers and engineers in weekly discovery and delivery rituals; ran usability studies and synthesized findings into roadmap inputs.
+Flowdesk - Product Designer (2020-2022)
+- Designed onboarding and permissions flows for an HR workflow tool; ran A/B tests with the growth team.
+
+EDUCATION
+B.Des. Visual Communication, Shenkar College of Engineering and Design (2015-2019)
+
+SKILLS
+Figma, prototyping, design systems, user research and usability testing, information architecture, accessibility, data-heavy dashboards, collaboration with engineering
