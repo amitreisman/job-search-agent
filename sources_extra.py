@@ -51,7 +51,7 @@ def comeet(slug):
 def comeet_description(slug, pos_uid):
     uid, token = slug.split("|")
     d = _req(f"https://www.comeet.co/careers-api/2.0/company/{uid}/positions/{pos_uid}?token={token}&details=true")
-    return " ".join(x.get("value", "") for x in d.get("details", []))
+    return " ".join((x.get("value") or "") for x in d.get("details", []))  # a block can carry value=null
 
 
 # ---------- Workday ----------

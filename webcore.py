@@ -248,6 +248,9 @@ async def run_matching(sid):
                         charge(1)
                         desc = await asyncio.to_thread(assessor.description, j["key"])
                         j["description"] = desc
+                        if len(desc) < 300:  # never score from the title alone
+                            j["assessment"] = None
+                            return
                         j["assessment"] = await assessor.assess_async(j["company"], j["title"], j["location"], desc, s["prof"], s["text"])
                     except Limit as e:
                         s["message"] = str(e)

@@ -26,6 +26,7 @@ import jprofile
 P = jprofile.P
 sources_extra.QUERY = P.get("search_query", "product manager")
 DB_PATH = jprofile.DATA / "jobs.db"
+MIN_DESC = 300  # characters of posting text required before a job may be scored
 MAX_AGE_DAYS = P["max_age_days"]
 COLORS = ["🟦", "🟩", "🟨", "🟧", "🟥", "🟪", "🟫"]
 SKIP_COMPANIES = {"Stripe", "Datadog", "Cloudflare", "Ramp", "Lemonade Israel"}  # little/no Israeli hiring
@@ -136,8 +137,12 @@ def main(dry_run, force=False):
     if P.get("max_assess"):  # demo profiles: assess only the newest N, to bound model cost
         pending = pending[:P["max_assess"]]
     for key, company, title, location in pending:
+        desc = assessor.description(key)
+        if len(desc) < MIN_DESC:  # a score without the posting text would be a guess presented as a number
+            log(company, "no_description", f"{title}: only {len(desc)} chars, not scored")
+            continue
         try:
-            r = assessor.assess(company, title, location, assessor.description(key))
+            r = assessor.assess(company, title, location, desc)
         except Exception as e:  # an assessment failure must never drop a job silently
             log(company, "assess_error", f"{title}: {e}")
             continue
