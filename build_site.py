@@ -1,4 +1,4 @@
-﻿"""Build the public showcase page (site/index.html) from real data.
+﻿"""Build the public showcase page (docs/index.html) from real data.
 
 PRIVACY: the public page is built ONLY from (a) aggregate counts of the real scan and (b) fictional demo personas run through
 the real pipeline. Nothing of the owner's CV, applications, contact details, recruiters or tokens is read or exported.
@@ -13,7 +13,7 @@ import sqlite3
 
 HERE = pathlib.Path(__file__).parent
 DATA = HERE / "data"
-OUT = HERE / "site"
+OUT = HERE / "docs"
 PERSONAS = ("demo_backend", "demo_data", "demo_design")
 
 
@@ -62,7 +62,7 @@ def main():
     html = tpl.replace("/*__DATA__*/null", json.dumps(payload, ensure_ascii=False)).replace("/*__API__*/", api)
     (OUT / "index.html").write_text(html, encoding="utf-8")
     size = (OUT / "index.html").stat().st_size // 1024
-    print("site/index.html written:", size, "KB |", stats, "| persona jobs:", {p["id"]: len(p["jobs"]) for p in payload["personas"]})
+    print("docs/index.html written:", size, "KB |", stats, "| persona jobs:", {p["id"]: len(p["jobs"]) for p in payload["personas"]})
 
 
 if __name__ == "__main__":

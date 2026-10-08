@@ -44,7 +44,7 @@ def err(msg, code=400):
 
 @app.get("/")
 async def index():
-    return FileResponse(HERE / "site" / "index.html", media_type="text/html")
+    return FileResponse(HERE / "docs" / "index.html", media_type="text/html")
 
 
 @app.get("/api/health")
