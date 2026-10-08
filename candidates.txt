@@ -1,0 +1,312 @@
+Check Point
+Palo Alto Networks
+CyberArk
+Cybereason
+Armis
+Orca Security
+Cato Networks
+Silverfort
+Pentera
+Axonius
+Snyk
+Aqua Security
+Transmit Security
+Cyera
+Island
+Wiz
+Zafran
+Upwind
+Noname Security
+Salt Security
+Apiiro
+Checkmarx
+Imperva
+Varonis
+Claroty
+Otorio
+Sepio
+SentinelOne
+Guardicore
+Vdoo
+Hunters
+Torq
+Cymulate
+XM Cyber
+Dream Security
+Nanitor
+Lightspin
+Aikido
+Legit Security
+Ox Security
+Rapyd
+Payoneer
+Pagaya
+Tipalti
+Melio
+Riskified
+Forter
+Nayax
+Papaya Global
+HiBob
+Bluevine
+Fundbox
+Capitolis
+Pennylane
+Navan
+Next Insurance
+Lemonade
+Hippo
+Pango
+Paysafe
+Nuvei
+Global-e
+Cardlytics
+Sunbit
+Lendbuzz
+Zeta
+Justt
+Rivery
+Skai
+Ebury
+Trustly
+AI21 Labs
+Hailo
+Lightricks
+Run:ai
+Deci
+Aidoc
+Sight Diagnostics
+Anodot
+Coralogix
+Sisense
+Monte Carlo
+Pecan
+Gong
+Similarweb
+Fiverr
+monday.com
+Wix
+Playtika
+Moon Active
+Playstudios
+Tabnine
+Qodo
+Lightrun
+JFrog
+Kaltura
+Taboola
+Outbrain
+ironSource
+Unity
+AppsFlyer
+Perion
+Nexxen
+Digital Turbine
+Via
+Yotpo
+Lusha
+ZoomInfo
+Bringg
+Gett
+Cellebrite
+Verint
+NICE
+Amdocs
+Sapiens
+Magic Software
+Radware
+Allot
+CEVA
+Nova
+Camtek
+Mobileye
+Innoviz
+Arbe
+Autotalks
+Valens
+Habana
+Elbit
+Rafael
+Mellanox
+Nvidia
+Intel
+Microsoft
+Google
+Amazon
+Apple
+Meta
+Salesforce
+SAP
+Oracle
+IBM
+Cisco
+VMware
+Dell
+HPE
+Samsung
+Qualcomm
+Broadcom
+Marvell
+PayPal
+Visa
+Mastercard
+American Express
+Citi
+JPMorgan
+Wix Answers
+Elementor
+Jfrog
+Cloudinary
+Lightspeed
+Riverside
+Hibob
+Papaya
+Rise
+Deel
+Remote
+Pipl
+Optimove
+Dynamic Yield
+Bigabid
+Tremor
+Taptica
+Gamefam
+Plarium
+Huuuge
+Product Madness
+Tabtale
+Joytunes
+Wix Studio
+Zesty
+Spot
+NetApp
+Granulate
+Cloudzone
+Datadog
+Dynatrace
+New Relic
+Elastic
+MongoDB
+Redis
+Couchbase
+Confluent
+Snowflake
+Databricks
+Stripe
+Plaid
+Ramp
+Brex
+Checkout.com
+Adyen
+Klarna
+Wise
+Revolut
+Monzo
+Oscar
+Vimeo
+Zoom
+Slack
+Atlassian
+Asana
+Notion
+Canva
+Figma
+Miro
+Lemonade Israel
+Trax
+Pepperdata
+Tufin
+Cloudflare
+Fastly
+Akamai
+Okta
+Zscaler
+CrowdStrike
+Fortinet
+Proofpoint
+Mimecast
+Forescout
+Sygnia
+Team8
+Samsara
+Placer.ai
+Vast Data
+Weka
+Nextsilicon
+Quantum Machines
+Classiq
+Nanox
+Itamar Medical
+Medinol
+Zebra
+Biobeat
+Healthy.io
+Tyto Care
+Sheba
+Kryon
+Walkme
+Pipedrive
+Freshworks
+HubSpot
+Gainsight
+Totango
+Lightricks Ltd
+Hippo Insurance
+Cellebrite DI
+SimilarWeb
+Zerto
+Kaminario
+Infinidat
+Pliops
+Neuralink
+Wayve
+Mobileeye
+Otonomo
+Nexar
+Moovit
+Waze
+Lightyear
+Cato
+Piano
+Blazemeter
+Perfecto
+Applitools
+Testim
+Mabl
+LogicMonitor
+Sapiens International
+Cognyte
+Nexite
+Hailo Technologies
+Starkware
+Chainalysis
+Fireblocks
+Bits of Gold
+EToro
+Plus500
+Tradestation
+Yotpo Ltd
+Honeybook
+Hibob Ltd
+Soluto
+Lemonade Inc
+Reali
+Houzz
+Zillow
+Compass
+Opendoor
+Redfin
+Wolt
+Bolt
+Uber
+Lyft
+Cabify
+Gett Israel
+Hopper
+Booking
+Expedia
+Tripadvisor
+Airbnb
+Skyscanner
+Kayak
+Ryanair

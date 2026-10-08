@@ -57,8 +57,8 @@ svg text{font-family:inherit}
 .chip:hover{border-color:var(--accent)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .demo{display:grid;grid-template-columns:372px minmax(0,1fr);gap:34px;align-items:start}
-@media(max-width:900px){.demo{grid-template-columns:1fr;justify-items:center}.demo>.side{width:100%}}
-.phone{width:372px;max-width:100%;height:700px;border-radius:44px;background:#0d0f12;padding:10px;box-shadow:0 24px 60px rgba(0,0,0,.25);position:relative}
+@media(max-width:900px){.demo{grid-template-columns:minmax(0,1fr);justify-items:center}.demo>.side{width:100%;min-width:0}}
+.phone{width:min(372px,100%);height:700px;border-radius:44px;background:#0d0f12;padding:10px;box-shadow:0 24px 60px rgba(0,0,0,.25);position:relative}
 .screen{height:100%;border-radius:34px;overflow:hidden;background:var(--chat);display:flex;flex-direction:column}
 .tg-head{display:flex;align-items:center;gap:10px;padding:34px 16px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
 .avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:14px}
@@ -135,6 +135,30 @@ textarea{min-height:120px;resize:vertical;margin-top:8px}
 @keyframes pulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 45%,transparent)}}
 .pressed{transform:scale(.97);filter:brightness(.92)}
 .static-note{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+
+.flow-m{display:none;margin:0;padding:0;list-style:none;counter-reset:s}
+.flow-m li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.flow-m li:first-child{border-top:0;padding-top:0}
+.flow-m li:before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:13px}
+.flow-m li.gate:before{background:var(--warn-soft);color:var(--warn)}
+.flow-m b{display:block}.flow-m span{color:var(--muted);font-size:14.5px}
+@media (max-width:700px){
+  html{scroll-padding-top:104px}
+  header.top .wrap{height:auto;flex-direction:column;align-items:flex-start;gap:4px;padding:10px 20px 8px}
+  header.top strong{white-space:nowrap;font-size:15px}
+  header.top nav{display:flex;gap:18px;width:100%;overflow-x:auto;white-space:nowrap;padding:4px 0 6px;scrollbar-width:none}
+  header.top nav::-webkit-scrollbar{display:none}
+  header.top nav a{margin-left:0;padding:6px 0}
+  .hero{padding-top:36px}
+  section{padding:40px 0}
+  .diagram{display:none}
+  .flow-m{display:block}
+  .card{padding:18px}
+  .cta .btn{width:100%;justify-content:center}
+  .stat b{font-size:28px}
+  .score-row{grid-template-columns:104px 1fr 28px}
+  .walk{top:96px;font-size:13px}
+}
 dialog{border:0;border-radius:16px;padding:0;background:var(--surface);max-width:min(92vw,760px);width:100%;box-shadow:0 30px 80px rgba(0,0,0,.4)}
 dialog::backdrop{background:rgba(8,10,12,.65);backdrop-filter:blur(3px)}
 dialog img{display:block;width:100%;height:auto;background:#fff}
@@ -198,6 +222,14 @@ footer{padding:36px 0 70px;color:var(--muted);font-size:14px;border-top:1px soli
 <section id="how"><div class="wrap">
   <h2>How it works</h2>
   <p class="sub">A pipeline of small, single-purpose agents with one deliberate human gate. Rules do the cheap work; the model is used only where judgement is needed.</p>
+  <ol class="flow-m card" aria-label="Pipeline steps">
+    <li><div><b>Job boards</b><span>9 hiring systems, public APIs only</span></div></li>
+    <li><div><b>Scout</b><span>Filters, dedupes and tracks what is still open</span></div></li>
+    <li><div><b>Assessor</b><span>LLM 5-part score with hard filters</span></div></li>
+    <li><div><b>Report</b><span>Every open job, new ones marked</span></div></li>
+    <li class="gate"><div><b>Human gate</b><span>I decide and tap a button</span></div></li>
+    <li><div><b>Tailor</b><span>One-page CV and a cover letter</span></div></li>
+  </ol>
   <div class="card diagram">
   <svg viewBox="0 0 980 230" role="img" aria-label="Pipeline: job boards, Scout, Assessor, report, human gate, Tailor">
     <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
@@ -485,6 +517,7 @@ fetch(API + "/api/health", {signal: AbortSignal.timeout(3500)}).then(r => r.ok ?
 </script>
 </body>
 </html>
+
 
 
 
