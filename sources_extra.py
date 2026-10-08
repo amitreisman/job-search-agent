@@ -197,6 +197,77 @@ def radancy_description(slug, path):
     m = re.search(r'"description"\s*:\s*"((?:[^"\\]|\\.)*)"', page)
     return json.loads(f'"{m.group(1)}"') if m else re.sub(r"<[^>]+>", " ", page)[:6000]
 
+# ---------- SmartRecruiters: slug = company id ----------
+def smartrecruiters(slug):
+    out, offset = [], 0
+    while offset < 300:
+        d = _req(f"https://api.smartrecruiters.com/v1/companies/{slug}/postings?limit=100&offset={offset}")
+        for j in d.get("content", []):
+            loc = j.get("location") or {}
+            out.append(dict(id=j["id"], title=j["name"], location=f"{loc.get('city', '')} {loc.get('country', '')}".replace(" il", " Israel"),
+                            url=f"https://jobs.smartrecruiters.com/{slug}/{j['id']}",
+                            posted_at=dt.datetime.fromisoformat(j["releasedDate"].replace("Z", "+00:00"))))
+        offset += 100
+        if offset >= d.get("totalFound", 0):
+            break
+    return out
+
+
+def smartrecruiters_description(slug, jid):
+    d = _req(f"https://api.smartrecruiters.com/v1/companies/{slug}/postings/{jid}")
+    secs = ((d.get("jobAd") or {}).get("sections") or {})
+    return " ".join((s or {}).get("text", "") for s in secs.values())
+
+# ---------- HiBob careers: slug = company identifier, e.g. "hibob-fa0ad69d0cb34a" ----------
+_hibob_cache = {}
+
+
+def _hibob_list(slug):
+    d = _req(f"https://{slug}.careers.hibob.com/api/job-ad", headers={"companyIdentifier": slug})
+    _hibob_cache[slug] = {j["id"]: j for j in d.get("jobAdDetails", [])}
+    return list(_hibob_cache[slug].values())
+
+
+def hibob(slug):
+    return [dict(id=j["id"], title=j["title"], location=f"{j.get('site', '')} {j.get('country', '')}",
+                 url=f"https://{slug}.careers.hibob.com/jobs/{j['id']}", posted_at=dt.datetime.fromisoformat(j["publishedAt"].replace("Z", "+00:00")))
+            for j in _hibob_list(slug)]
+
+
+def hibob_description(slug, jid):
+    j = (_hibob_cache.get(slug) or {}).get(jid)
+    if j is None:
+        _hibob_list(slug)
+        j = _hibob_cache[slug].get(jid, {})
+    return " ".join(str(j.get(k) or "") for k in ("description", "responsibilities", "requirements"))
+
+
+# ---------- TeamMe (Comeet-backed career pages, e.g. Silverfort, Claroty): slug = "<project id>|<comeet company>/<uid>" ----------
+_teamme_urls = {}
+
+
+def teamme(slug):
+    pid, _ = slug.split("|")
+    d = _req(f"https://teamme.link/api/projects/{pid}/positions")
+    rows = d if isinstance(d, list) else next((v for v in d.values() if isinstance(v, list) and v and isinstance(v[0], dict) and "title" in v[0]), [])
+    _teamme_urls[pid] = {j["id"]: j.get("applyUrl") for j in rows}
+    return [dict(id=j["id"], title=j["title"], location=str(j.get("location") or ""), url=j.get("applyUrl") or "",
+                 posted_at=dt.datetime.fromisoformat(j["lastModified"].replace("Z", "+00:00"))) for j in rows]  # last update, not first publish
+
+
+def teamme_description(slug, jid):
+    pid, _ = slug.split("|")
+    if jid not in _teamme_urls.get(pid, {}):
+        teamme(slug)  # refill the id -> url map
+    url = _teamme_urls.get(pid, {}).get(jid)
+    if not url:
+        return ""
+    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=25) as x:
+        page = x.read().decode("utf-8", "ignore")
+    page = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", page, flags=re.S)
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page))[:8000]
+
+
 def fetch(ats, slug, is_pm):
     if ats == "comeet":
         return comeet(slug)
@@ -208,6 +279,12 @@ def fetch(ats, slug, is_pm):
         return pcsx(slug)
     if ats == "radancy":
         return radancy(slug)
+    if ats == "smartrecruiters":
+        return smartrecruiters(slug)
+    if ats == "hibob":
+        return hibob(slug)
+    if ats == "teamme":
+        return teamme(slug)
     raise ValueError(ats)
 
 
@@ -222,7 +299,14 @@ def description(ats, slug, jid):
         return pcsx_description(slug, jid)
     if ats == "radancy":
         return radancy_description(slug, jid)
+    if ats == "smartrecruiters":
+        return smartrecruiters_description(slug, jid)
+    if ats == "hibob":
+        return hibob_description(slug, jid)
+    if ats == "teamme":
+        return teamme_description(slug, jid)
     return ""
+
 
 
 

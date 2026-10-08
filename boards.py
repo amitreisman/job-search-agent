@@ -1,4 +1,4 @@
-"""Fetch job lists from company job boards (public APIs). No Telegram, no candidate profile: safe to import anywhere."""
+﻿"""Fetch job lists from company job boards (public APIs). No Telegram, no candidate profile: safe to import anywhere."""
 import csv
 import datetime as dt
 import json
@@ -51,8 +51,9 @@ def fetch(company, ats, slug, is_pm=lambda t: True):
         for j in get(f"https://apply.workable.com/api/v1/widget/accounts/{slug}")["jobs"]:
             out.append(dict(id=j["shortcode"], title=j["title"], location=f"{j.get('city','')} {j.get('country','')}",
                             url=j["url"], posted_at=dt.datetime.fromisoformat(j["published_on"]).replace(tzinfo=dt.timezone.utc)))
-    elif ats in ("comeet", "workday", "amazon", "pcsx", "radancy"):
+    elif ats in ("comeet", "workday", "amazon", "pcsx", "radancy", "smartrecruiters", "hibob", "teamme"):
         out = sources_extra.fetch(ats, slug, is_pm)
     return out
+
 
 

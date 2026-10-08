@@ -1,4 +1,4 @@
-"""Scout: scans company job boards for PM roles in Israel, stores them, alerts on Telegram.
+﻿"""Scout: scans company job boards for PM roles in Israel, stores them, alerts on Telegram.
 
 Usage:  python scout.py [--dry-run]
 Every decision is written to the `trace` table (feeds the public replay page later).
@@ -205,6 +205,7 @@ def main(dry_run, force=False):
 
 if __name__ == "__main__":
     main("--dry-run" in sys.argv, "--force" in sys.argv)
+
 
 
 

@@ -85,7 +85,7 @@ def description(key):
             for j in get(f"https://api.ashbyhq.com/posting-api/job-board/{slug}?includeCompensation=true")["jobs"]:
                 if j["id"] == jid:
                     return j["descriptionPlain"]
-        if ats in ("comeet", "workday", "amazon", "pcsx", "radancy"):
+        if ats in ("comeet", "workday", "amazon", "pcsx", "radancy", "smartrecruiters", "hibob", "teamme"):
             import sources_extra
             return strip_html(sources_extra.description(ats, slug, jid))
         if ats == "workable":
@@ -147,6 +147,7 @@ def run_backlog():
 if __name__ == "__main__":
     if "--backlog" in sys.argv:
         run_backlog()
+
 
 
 
