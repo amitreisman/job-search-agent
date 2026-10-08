@@ -23,6 +23,7 @@ a{color:var(--accent)}
 header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 header.top .wrap{display:flex;justify-content:space-between;align-items:center;height:56px;font-size:14px}
 header.top strong{display:flex;align-items:center;gap:8px}
+header.top .by{font-weight:400;color:var(--muted);margin-left:-3px}
 .logo{width:22px;height:22px;border-radius:7px;background:var(--accent);display:inline-block;position:relative}
 .logo:after{content:"";position:absolute;inset:6px;border:2px solid var(--accent-ink);border-radius:50%}
 header.top nav a{margin-left:20px;color:var(--muted);text-decoration:none}
@@ -145,7 +146,7 @@ footer{padding:36px 0 70px;color:var(--muted);font-size:14px;border-top:1px soli
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><strong><span class="logo" aria-hidden="true"></span>Job Search Agent</strong>
+<header class="top"><div class="wrap"><strong><span class="logo" aria-hidden="true"></span>Job Search Agent<span class="by"> - Amit Reisman</span></strong>
 <nav><a href="#try">Try it</a><a href="#how">How it works</a><a href="#decisions">Decisions</a><a href="#limits">Limits</a></nav></div></header>
 
 <main>
@@ -484,5 +485,6 @@ fetch(API + "/api/health", {signal: AbortSignal.timeout(3500)}).then(r => r.ok ?
 </script>
 </body>
 </html>
+
 
 
