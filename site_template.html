@@ -127,6 +127,13 @@ textarea{min-height:120px;resize:vertical;margin-top:8px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err{color:#b3261e;font-size:14px;margin:10px 0 0;min-height:0}
 .sample-label{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 0 10px}
+.walk{position:sticky;top:64px;z-index:15;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;margin:0 0 14px;box-shadow:var(--shadow)}
+.walk .linkbtn{color:var(--bg);opacity:.85}
+.walk b{font-weight:700}
+.pulse{animation:pulse .7s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 45%,transparent)}}
+.pressed{transform:scale(.97);filter:brightness(.92)}
+.static-note{font-size:13.5px;color:var(--muted);margin:0 0 14px}
 dialog{border:0;border-radius:16px;padding:0;background:var(--surface);max-width:min(92vw,760px);width:100%;box-shadow:0 30px 80px rgba(0,0,0,.4)}
 dialog::backdrop{background:rgba(8,10,12,.65);backdrop-filter:blur(3px)}
 dialog img{display:block;width:100%;height:auto;background:#fff}
@@ -146,13 +153,15 @@ footer{padding:36px 0 70px;color:var(--muted);font-size:14px;border-top:1px soli
   <div class="eyebrow">Agent-based system, built end to end</div>
   <h1>An agent that finds the jobs. I make the decisions.</h1>
   <p class="lede">It watches <span id="n-co">47</span> companies' job boards, scores every role against a CV with an explainable breakdown, and prepares a tailored CV and cover letter on request. It never applies or messages anyone by itself.</p>
-  <div class="cta"><a class="btn primary" href="#try">Try the live flow</a><a class="btn" href="#decisions">Read the design decisions</a></div>
+  <div class="cta"><button class="btn primary" id="watch">&#9654; Watch the 20-second walkthrough</button><a class="btn" href="#try">Tap through it yourself</a></div>
   <div class="stats" id="stats"></div>
 </div></div>
 
 <section id="try"><div class="wrap">
   <h2>Try it: the real flow, on your phone</h2>
-  <p class="sub">I use it through Telegram. Below is that exact experience, with a <strong>fictional candidate</strong> run through the real pipeline against real, public job boards. Tap the buttons, or use your own CV below.</p>
+  <p class="sub">I use it through Telegram. Below is that exact experience, with a <strong>fictional candidate</strong> run through the real pipeline against real, public job boards. Tap the buttons, or watch the whole flow replayed.</p>
+  <div class="walk" id="walk" hidden><span id="walk-step"></span><button class="linkbtn" id="walk-skip">Skip</button></div>
+  <p class="static-note" id="static-note" hidden>Uploading your own CV works in the live version of this app (it runs the same code and calls the model per visit, so it is not open to the public). This page replays a recorded run of the real pipeline so you can see the whole flow.</p>
   <div class="card live" id="live" hidden>
     <h3>Use your own CV</h3>
     <p class="meta">Upload it and name the role you want. The agent scans the same company job boards, scores real roles against your CV, and generates your tailored CV and cover letter.</p>
@@ -182,7 +191,7 @@ footer{padding:36px 0 70px;color:var(--muted);font-size:14px;border-top:1px soli
       <details class="card sample-only" style="margin-top:14px"><summary>Sample CV the agent works from (fictional)</summary><pre id="cv"></pre></details>
     </div>
   </div>
-  <p class="note">Live mode (paste your own CV) needs a hosted backend, a model budget and careful handling of personal data. It is the next step; the code already runs from a profile file.</p>
+  <p class="note">The live version (upload your own CV) runs the same code. It is not open to the public because every visit calls the model, and CVs are personal data.</p>
 </div></section>
 
 <section id="how"><div class="wrap">
@@ -404,10 +413,74 @@ $("#erase").onclick = async () => {
   $("#err").textContent = "Your CV was erased from the server.";
 };
 
+// ---------- recorded walkthrough (replays real pipeline output; works without a backend) ----------
+let walkId = 0;
+async function walkthrough() {
+  const id = ++walkId, alive = () => id === walkId, k = reduce ? 0.3 : 1, sl = ms => wait(ms * k);
+  const idx = Math.max(0, DATA.personas.indexOf(P)); P = DATA.personas[idx];
+  const live = $("#live"), wasHidden = live.hidden, bar = $("#walk"), step = $("#walk-step");
+  const say = (n, text) => { step.replaceChildren(el("b", {textContent: `Step ${n}/5 · `}), document.createTextNode(text)); };
+  const reset = () => {
+    bar.hidden = true; live.hidden = wasHidden; $("#go").disabled = false; $("#go").classList.remove("pressed");
+    $("#drop").classList.remove("has"); $("#drop-t").textContent = "Drop your CV here or click to browse"; $("#role").value = ""; $("#stages").hidden = true;
+    document.querySelectorAll(".pulse").forEach(e => e.classList.remove("pulse"));
+  };
+  $("#walk-skip").onclick = () => { walkId++; reset(); renderPersona(idx); };
+  bar.hidden = false; live.hidden = false; $("#try").scrollIntoView({behavior: reduce ? "auto" : "smooth"});
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", "false"));
+  document.querySelectorAll(".sample-only").forEach(e => e.hidden = true);
+  chat.replaceChildren(); add(el("div", {}, [el("small", {textContent: "Waiting for a CV…"})]));
+  $("#hood").replaceChildren(el("p", {className: "meta", textContent: "The score breakdown appears here once roles are scored."}));
+  ["#st1", "#st2", "#st3"].forEach((s, n) => { $(s).className = "stage"; $(s).firstElementChild.textContent = n + 1; });
+  $("#st1").lastElementChild.textContent = "Reading your CV"; $("#st2").lastElementChild.textContent = "Scanning company job boards"; $("#st3").lastElementChild.textContent = "Scoring the best roles";
+  // 1 upload
+  say(1, "Upload a CV and say which role you want");
+  await sl(900); if (!alive()) return;
+  const cvName = `${P.display.replace(/\s+/g, "_")}_CV.pdf`;
+  $("#drop").classList.add("has"); $("#drop-t").textContent = cvName;
+  for (const ch of P.query) { $("#role").value += ch; await sl(55); if (!alive()) return; }
+  await sl(700); if (!alive()) return;
+  $("#go").classList.add("pressed"); $("#go").disabled = true; await sl(250); $("#go").classList.remove("pressed");
+  // 2 read + scan
+  say(2, "The agent reads the CV, then scans the company job boards");
+  $("#stages").hidden = false; setStage(1, "active"); await sl(1100); if (!alive()) return;
+  setStage(1, "done", `Read ${P.display}'s CV · searching for "${P.query}"`); setStage(2, "active");
+  const total = DATA.stats.companies;
+  for (let n = 0; n <= total; n += 4) { setStage(2, "active", `Scanning company job boards ${Math.min(n, total)}/${total}`); await sl(95); if (!alive()) return; }
+  setStage(2, "done", `Scanned ${total} boards`);
+  // 3 score
+  say(3, "It scores the best roles against the CV");
+  const m = P.jobs.length; setStage(3, "active");
+  for (let n = 0; n <= m; n++) { setStage(3, "active", `Scoring the best roles ${n}/${m}`); await sl(230); if (!alive()) return; }
+  setStage(3, "done", `Scored ${m} roles`);
+  await sl(600); if (!alive()) return;
+  // 4 report
+  say(4, "The report arrives, with a score and a reason for every role");
+  mode = "sample"; const list = P.jobs.filter(j => !j.hard && j.total >= 50).slice(0, 3);
+  drawReport("Report #7", list, `${list.length} open roles · ${Math.min(2, list.length)} new`);
+  document.querySelector(".phone").scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "center"});
+  await sl(1800); if (!alive()) return;
+  // 5 tailor
+  say(5, "One tap tailors the CV and writes the cover letter");
+  const card = document.querySelectorAll(".job-card")[0], pick = t => [...card.querySelectorAll("button")].find(b => b.textContent === t);
+  pick("Tailor CV").classList.add("pulse"); await sl(900); if (!alive()) return; pick("Tailor CV").classList.remove("pulse");
+  await act("cv", 0); if (!alive()) return;
+  await sl(500); const file = `${P.display.replace(/\s+/g, "_")}_${list[0].company.replace(/\W+/g, "_")}.pdf`;
+  openCv(file, P.show.cv_png, null); await sl(3000); if (!alive()) return; $("#dlg").close();
+  pick("Cover letter").classList.add("pulse"); await sl(800); if (!alive()) return; pick("Cover letter").classList.remove("pulse");
+  await act("cl", 0); if (!alive()) return;
+  step.replaceChildren(el("b", {textContent: "Done · "}), document.createTextNode("recorded run of the real pipeline, replayed"));
+  await sl(2500); if (!alive()) return;
+  reset(); bar.hidden = true;
+}
+$("#watch").onclick = walkthrough;
+$("#chips").append(el("button", {className: "chip", textContent: "▶ Watch walkthrough", onclick: walkthrough}));
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { if (!c.textContent.startsWith("▶")) { walkId++; $("#walk").hidden = true; } }));
+
 renderPersona(0);
 fetch(API + "/api/health", {signal: AbortSignal.timeout(3500)}).then(r => r.ok ? r.json() : null).then(h => {
-  if (h && h.live) { $("#live").hidden = false; $("#sample-label").hidden = false; }
-}).catch(() => {});
+  if (h && h.live) { $("#live").hidden = false; $("#sample-label").hidden = false; } else { $("#static-note").hidden = false; }
+}).catch(() => { $("#static-note").hidden = false; });
 </script>
 </body>
 </html>

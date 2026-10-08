@@ -2,7 +2,7 @@
 
 An agent-based system that watches company job boards, scores every role against a CV with an explainable breakdown, and prepares a tailored one-page CV and cover letter on request. It never applies or messages anyone by itself.
 
-**Live demo:** upload your own CV, or try a fictional sample candidate (link in the repo description).
+**Public demo:** a recorded walkthrough of the full flow plus three fictional sample candidates (real pipeline output, no backend, no cost). The live version, where you upload your own CV, runs the same code locally; it is not open to the public because every visit calls the model and CVs are personal data.
 
 ## How it works
 
