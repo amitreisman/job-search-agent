@@ -73,10 +73,12 @@ def main(dry_run, force=False):
         posted_at TEXT, first_seen TEXT, notified INTEGER DEFAULT 0, senior INTEGER DEFAULT 0);
     CREATE TABLE IF NOT EXISTS trace (ts TEXT, run TEXT, company TEXT, event TEXT, detail TEXT);
     """)
-    try:
-        db.execute("ALTER TABLE jobs ADD COLUMN last_seen TEXT")  # when a scan last saw the job still open
-    except sqlite3.OperationalError:
-        pass
+    for col in ("last_seen TEXT",  # when a scan last saw the job still open
+                "hidden INTEGER DEFAULT 0", "hidden_reason TEXT", "hidden_at TEXT"):  # jobs the owner dismissed or already acted on
+        try:
+            db.execute(f"ALTER TABLE jobs ADD COLUMN {col}")
+        except sqlite3.OperationalError:
+            pass
     now = dt.datetime.now(dt.timezone.utc)
     run = now.strftime("%Y%m%dT%H%M")
     stamp = now.isoformat()
@@ -133,7 +135,7 @@ def main(dry_run, force=False):
     print(f"Scanned {ok}/{len(results)} companies, {len(new)} new PM roles in Israel")
     assessor.ensure_tables(db)
     pending = db.execute("SELECT key, company, title, location FROM jobs WHERE key NOT IN (SELECT key FROM assessments) "
-                         "ORDER BY posted_at DESC").fetchall()
+                         "AND COALESCE(hidden, 0) = 0 ORDER BY posted_at DESC").fetchall()  # no model spend on dismissed jobs
     if P.get("max_assess"):  # demo profiles: assess only the newest N, to bound model cost
         pending = pending[:P["max_assess"]]
     for key, company, title, location in pending:
@@ -159,7 +161,8 @@ def main(dry_run, force=False):
     # A report always lists EVERY open matching job (seen open in this scan), newest first; new ones are marked.
     due = db.execute("""SELECT j.rowid, j.company, j.title, j.url, j.posted_at, a.total, a.result, j.first_seen
                         FROM jobs j LEFT JOIN assessments a ON a.key = j.key
-                        WHERE j.last_seen = ? ORDER BY j.posted_at DESC""", (stamp,)).fetchall()
+                        WHERE j.last_seen = ? AND COALESCE(j.hidden, 0) = 0
+                        ORDER BY j.posted_at DESC""", (stamp,)).fetchall()
     passing = [d for d in due if d[5] is None or d[5] >= assessor.THRESHOLD]  # unassessed jobs are shown, never lost
     below = len(due) - len(passing)
     fresh = sum(1 for d in passing if d[7] == stamp)
@@ -180,7 +183,10 @@ def main(dry_run, force=False):
             why = "\n" + html.escape(json.loads(result).get("one_line", ""))
         new_tag = "🆕 " if first_seen == stamp else ""
         text = f"{new_tag}<b>{html.escape(title)}</b>\n{html.escape(company)} | {age} | <b>{score}</b>{why}"
-        buttons = [[{"text": "למשרה", "url": url}],
+        # Every button is a callback so the bot can tell which job was handled and stop showing it.
+        # (A Telegram URL button cannot be observed, which is why "open" goes through the bot.)
+        buttons = [[{"text": "🔗 למשרה", "callback_data": f"op:{jid}"},
+                    {"text": "✖ הסר", "callback_data": f"hx:{jid}"}],
                    [{"text": "התאם קו\"ח", "callback_data": f"cv:{jid}"},
                     {"text": "COVER LETTER", "callback_data": f"cl:{jid}"}]]
         items.append((text, buttons))
@@ -208,8 +214,23 @@ def main(dry_run, force=False):
     db.close()
 
 
+def unhide(which):
+    """python scout.py --unhide 17   (one job, by its number)   |   python scout.py --unhide all"""
+    db = sqlite3.connect(DB_PATH)
+    if which == "all":
+        n = db.execute("UPDATE jobs SET hidden=0, hidden_reason=NULL, hidden_at=NULL WHERE hidden=1").rowcount
+    else:
+        n = db.execute("UPDATE jobs SET hidden=0, hidden_reason=NULL, hidden_at=NULL WHERE rowid=?", (int(which),)).rowcount
+    db.commit()
+    db.close()
+    print(f"restored {n} job(s)")
+
+
 if __name__ == "__main__":
-    main("--dry-run" in sys.argv, "--force" in sys.argv)
+    if "--unhide" in sys.argv:
+        unhide(sys.argv[sys.argv.index("--unhide") + 1])
+    else:
+        main("--dry-run" in sys.argv, "--force" in sys.argv)
 
 
 

@@ -1,9 +1,16 @@
-﻿"""Bot: listens for button presses in Telegram and generates the tailored CV / cover letter on demand.
+"""Bot: listens for button presses in Telegram and acts on them.
+
+Buttons on every job card:
+  🔗 למשרה   (op)  sends the link and stops showing the job in later reports
+  ✖ הסר      (hx)  dismisses the job: it never appears again
+  התאם קו"ח  (cv)  builds the tailored CV, and stops showing the job
+  COVER LETTER (cl) writes the cover letter, and stops showing the job
 
 Run it and leave it running:  python bot.py
 Only the owner's chat is served; everything else is ignored. Nothing is ever sent to a third party:
 files and text come back to the same chat, and applying stays manual.
 """
+import html
 import sqlite3
 import sys
 import threading
@@ -13,6 +20,9 @@ import traceback
 import assessor
 import tg
 
+HIDE_ACTIONS = {"op": "opened", "hx": "dismissed", "cv": "cv", "cl": "letter"}
+QUICK = {"op": "הקישור נשלח", "hx": "הוסרה מהרשימה"}
+
 
 def trace(event, detail):
     db = sqlite3.connect(assessor.DB_PATH)
@@ -21,21 +31,58 @@ def trace(event, detail):
     db.close()
 
 
+def job_row(job_id):
+    db = sqlite3.connect(assessor.DB_PATH)
+    row = db.execute("SELECT company, title, url FROM jobs WHERE rowid=?", (job_id,)).fetchone()
+    db.close()
+    return row
+
+
+def mark_hidden(job_id, reason):
+    """The job is acted on or dismissed: keep it out of every later report (the key stays, so a re-scan cannot bring it back)."""
+    db = sqlite3.connect(assessor.DB_PATH)
+    for col in ("hidden INTEGER DEFAULT 0", "hidden_reason TEXT", "hidden_at TEXT"):
+        try:
+            db.execute(f"ALTER TABLE jobs ADD COLUMN {col}")
+        except sqlite3.OperationalError:
+            pass
+    db.execute("UPDATE jobs SET hidden=1, hidden_reason=?, hidden_at=datetime('now') WHERE rowid=?", (reason, job_id))
+    db.commit()
+    db.close()
+
+
 def handle(cb):
     action, job_id = cb["data"].split(":")
     job_id = int(job_id)
+    msg_id = cb["message"]["message_id"]
     try:
-        import tailor  # imported lazily so the listener starts fast
-        if action == "cv":
-            tg.api("sendChatAction", chat_id=tg.CHAT_ID, action="upload_document")
-            path, notes = tailor.make_cv(job_id)
-            tg.send_document(path, caption=f"קורות חיים מותאמים: {notes}", reply_to=cb["message"]["message_id"])
-            trace("cv_sent", f"job {job_id}: {notes}")
-        elif action == "cl":
-            tg.api("sendChatAction", chat_id=tg.CHAT_ID, action="typing")
-            letter = tailor.make_letter(job_id)
-            tg.send_message(letter, html=False, reply_to=cb["message"]["message_id"])
-            trace("letter_sent", f"job {job_id}")
+        mark_hidden(job_id, HIDE_ACTIONS.get(action, action))  # first, so even a failed generation does not bring the job back
+        row = job_row(job_id)
+        if action == "op":
+            company, title, url = row
+            tg.send_message(f'🔗 <a href="{html.escape(url)}">{html.escape(title)}</a> | {html.escape(company)}',
+                            [[{"text": "פתח את המשרה", "url": url}]], reply_to=msg_id)
+            trace("opened", f"job {job_id}: {company} / {title}")
+        elif action == "hx":
+            company, title, _ = row
+            try:  # turn the card into a one-line note; omitting reply_markup also removes its buttons
+                tg.api("editMessageText", chat_id=tg.CHAT_ID, message_id=msg_id, parse_mode="HTML",
+                       text=f"✖ <s>{html.escape(title)}</s> | {html.escape(company)}\nהוסרה מהרשימה ולא תופיע שוב")
+            except Exception:
+                pass  # the note is cosmetic; the job is already hidden
+            trace("dismissed", f"job {job_id}: {company} / {title}")
+        elif action in ("cv", "cl"):
+            import tailor  # imported lazily so the listener starts fast
+            if action == "cv":
+                tg.api("sendChatAction", chat_id=tg.CHAT_ID, action="upload_document")
+                path, notes = tailor.make_cv(job_id)
+                tg.send_document(path, caption=f"קורות חיים מותאמים: {notes}", reply_to=msg_id)
+                trace("cv_sent", f"job {job_id}: {notes}")
+            else:
+                tg.api("sendChatAction", chat_id=tg.CHAT_ID, action="typing")
+                letter = tailor.make_letter(job_id)
+                tg.send_message(letter, html=False, reply_to=msg_id)
+                trace("letter_sent", f"job {job_id}")
     except Exception as e:
         traceback.print_exc()
         tg.send_message(f"לא הצלחתי להכין ({action}): {e}", html=False)
@@ -55,8 +102,9 @@ def main():
                 cb = u.get("callback_query")
                 if not cb or cb["from"]["id"] != tg.CHAT_ID:  # ignore anyone but the owner
                     continue
+                action = cb.get("data", ":").split(":")[0]
                 try:  # a press older than ~1 minute can no longer be acknowledged; still serve it
-                    tg.api("answerCallbackQuery", callback_query_id=cb["id"], text="מכין... זה לוקח כחצי דקה")
+                    tg.api("answerCallbackQuery", callback_query_id=cb["id"], text=QUICK.get(action, "מכין... זה לוקח כחצי דקה"))
                 except Exception:
                     pass
                 threading.Thread(target=handle, args=(cb,), daemon=True).start()
@@ -69,5 +117,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

@@ -70,7 +70,11 @@ def get(url):
 
 
 def strip_html(s):
-    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s or ""))).strip()
+    # Greenhouse returns markup escaped (&lt;p&gt;): unescape first so the tags can be removed, then unescape the text itself
+    s = html.unescape(s or "")
+    s = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", s, flags=re.S | re.I)
+    s = re.sub(r"<[^>]+>", " ", s)
+    return re.sub(r"\s+", " ", html.unescape(s)).strip()
 
 
 def description(key):
