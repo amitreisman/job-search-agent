@@ -139,6 +139,12 @@ def main(dry_run, force=False):
     if P.get("max_assess"):  # demo profiles: assess only the newest N, to bound model cost
         pending = pending[:P["max_assess"]]
     for key, company, title, location in pending:
+        if SENIOR_RE.search(title):  # Director/VP/Head-of is a hard filter anyway: no model call needed
+            db.execute("INSERT OR REPLACE INTO assessments VALUES (?,?,?,?,?,datetime('now'))",
+                       (key, 20, "too_senior", json.dumps({"scores": {}, "total": 20, "hard_filter": "too_senior", "strengths": [], "gaps": [],
+                                                           "one_line": "דרגת ניהול בכיר, מעל הרמה המבוקשת"}, ensure_ascii=False), "rule (title)"))
+            log(company, "assessed", f"{title} -> 20 (rule: senior title, no model call)")
+            continue
         desc = assessor.description(key)
         if len(desc) < MIN_DESC:  # a score without the posting text would be a guess presented as a number
             log(company, "no_description", f"{title}: only {len(desc)} chars, not scored")
@@ -183,9 +189,9 @@ def main(dry_run, force=False):
             why = "\n" + html.escape(json.loads(result).get("one_line", ""))
         new_tag = "🆕 " if first_seen == stamp else ""
         text = f"{new_tag}<b>{html.escape(title)}</b>\n{html.escape(company)} | {age} | <b>{score}</b>{why}"
-        # Every button is a callback so the bot can tell which job was handled and stop showing it.
-        # (A Telegram URL button cannot be observed, which is why "open" goes through the bot.)
-        buttons = [[{"text": "🔗 למשרה", "callback_data": f"op:{jid}"},
+        # "למשרה" is a plain URL button so it opens instantly on any device (Telegram cannot report URL-button taps, so it
+        # does not hide the job; use ✖ to dismiss). The other buttons are callbacks handled by bot.py.
+        buttons = [[{"text": "🔗 למשרה", "url": url},
                     {"text": "✖ הסר", "callback_data": f"hx:{jid}"}],
                    [{"text": "התאם קו\"ח", "callback_data": f"cv:{jid}"},
                     {"text": "COVER LETTER", "callback_data": f"cl:{jid}"}]]

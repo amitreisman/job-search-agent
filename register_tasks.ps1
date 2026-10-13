@@ -1,6 +1,6 @@
-# Registers the two Windows scheduled tasks for the job agent (runs as the current user, no password needed).
+﻿# Registers the two Windows scheduled tasks for the job agent (runs as the current user, no password needed).
 #   JobAgent-Scout : 07:30, 09:30, 11:30, 13:30 daily (runs a missed scan when the PC comes back on)
-#   JobAgent-Bot   : starts at logon and stays running; restarts itself if it dies
+#   JobAgent-Bot   : starts at logon and stays running; a 5-minute watchdog trigger restarts it if it is not running
 $dir = $PSScriptRoot
 $py = "C:\Python314\python.exe"
 $user = "$env:USERDOMAIN\$env:USERNAME"
@@ -22,6 +22,7 @@ Register-ScheduledTask -TaskName "JobAgent-Scout" -Action (Hidden "scout.py" "sc
 $botSettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit ([TimeSpan]::Zero) -RestartCount 99 -RestartInterval (New-TimeSpan -Minutes 1) -MultipleInstances IgnoreNew
 Register-ScheduledTask -TaskName "JobAgent-Bot" -Action (Hidden "bot.py" "bot.log") `
-    -Trigger (New-ScheduledTaskTrigger -AtLogOn -User $user) -Settings $botSettings -User $user -RunLevel Limited -Force | Out-Null
+    -Trigger @((New-ScheduledTaskTrigger -AtLogOn -User $user), (New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 3650))) -Settings $botSettings -User $user -RunLevel Limited -Force | Out-Null
 
 Get-ScheduledTask -TaskName "JobAgent-*" | Select-Object TaskName, State | Format-Table -AutoSize
+

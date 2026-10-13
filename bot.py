@@ -56,7 +56,8 @@ def handle(cb):
     job_id = int(job_id)
     msg_id = cb["message"]["message_id"]
     try:
-        mark_hidden(job_id, HIDE_ACTIONS.get(action, action))  # first, so even a failed generation does not bring the job back
+        if action in ("op", "hx"):
+            mark_hidden(job_id, HIDE_ACTIONS[action])  # instant actions are hidden right away
         row = job_row(job_id)
         if action == "op":
             company, title, url = row
@@ -77,15 +78,22 @@ def handle(cb):
                 tg.api("sendChatAction", chat_id=tg.CHAT_ID, action="upload_document")
                 path, notes = tailor.make_cv(job_id)
                 tg.send_document(path, caption=f"קורות חיים מותאמים: {notes}", reply_to=msg_id)
+                mark_hidden(job_id, "cv")  # only after a CV really exists
                 trace("cv_sent", f"job {job_id}: {notes}")
             else:
                 tg.api("sendChatAction", chat_id=tg.CHAT_ID, action="typing")
                 letter = tailor.make_letter(job_id)
                 tg.send_message(letter, html=False, reply_to=msg_id)
+                mark_hidden(job_id, "letter")
                 trace("letter_sent", f"job {job_id}")
     except Exception as e:
         traceback.print_exc()
-        tg.send_message(f"לא הצלחתי להכין ({action}): {e}", html=False)
+        if "Credit balance is too low" in str(e):
+            msg = ("⚠️ לא הצלחתי להכין: אין כרגע גישה למודל מהמחשב (\"Credit balance is too low\").\n"
+                   "המשרה לא הוסתרה, אפשר לנסות שוב אחרי שהחיבור יתוקן.")
+        else:
+            msg = f"לא הצלחתי להכין ({action}): {e}"
+        tg.send_message(msg, html=False, reply_to=msg_id)
         trace("error", f"{action} job {job_id}: {e}")
 
 

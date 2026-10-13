@@ -41,11 +41,25 @@ Score five components, each 0-100:
 - experience: years and kind of experience required vs. held
 - location: {P["home"]}
 Set "hard_filter" to "too_senior" if the role is {P["too_senior_rule"]}, "too_junior" if it is clearly {P["too_junior_rule"]}, otherwise null.
+List "critical_gaps": requirements that the posting marks as required (must, mandatory, "what you'll need", minimum years in a named
+domain) or that the role is built around, and that the resume clearly does NOT show. A nice-to-have or an advantage never counts.
+If something appears in both the required and the nice-to-have list, count it only when the role cannot be done without it.
+Quote the requirement briefly. Be strict: a domain background the role depends on (for example fraud, cybersecurity, a named
+technology or industry) that the resume lacks is a critical gap even when seniority and general experience fit well.
+Also identify the role's "core_domain": the one background the role is built around (for example fraud and identity,
+cybersecurity, e-commerce conversion, billing and accounting, a hardware industry). Say how close the resume is to it:
+- "direct": the resume shows real, hands-on work in that domain.
+- "adjacent": the resume shows substantially similar work that transfers (not merely the same broad industry; payments
+  is not fraud prevention, and fintech is not cybersecurity).
+- "none": the resume does not show it.
+A role is judged mainly on its core domain. Seniority, general product skills and location only decide between candidates
+who already have the domain; they must not rescue a candidate who lacks it.
 "total" is a weighted average: {", ".join(f"{k} {v}%" for k, v in _W.items())}.
 
 Return ONLY a JSON object, no prose, no code fences:
 {{"scores":{{"role_seniority":int,"domain":int,"skills":int,"experience":int,"location":int}},
- "total":int,"hard_filter":null|"too_senior"|"too_junior",
+ "total":int,"hard_filter":null|"too_senior"|"too_junior","critical_gaps":[up to 4 short strings, [] if none],
+ "core_domain":{{"requirement":"short","match":"direct"|"adjacent"|"none"}},
  "strengths":[up to 3 short strings],"gaps":[up to 3 short strings],
  "one_line":"<=20 words, why this score, in {P["language"]}"}}"""
 
@@ -113,6 +127,14 @@ async def assess_async(company, title, location, desc, profile=None, resume=None
     r = json.loads(m.group(0))
     if r.get("hard_filter"):
         r["total"] = min(r["total"], prof["threshold"] - 1)  # hard filters are not rescued by other components
+    match = ((r.get("core_domain") or {}).get("match") or "").lower()
+    if match in ("none", "adjacent"):  # a role is judged mainly on its core domain; other strengths cannot rescue a missing one
+        r.setdefault("uncapped_total", r["total"])
+        r["total"] = min(r["total"], 25 if match == "none" else 55)
+    n = len(r.get("critical_gaps") or [])
+    if n:  # unmet must-haves cap the weighted score: one -> below a strong match, two or more -> below the threshold
+        r["uncapped_total"] = r["total"]
+        r["total"] = min(r["total"], 59 if n == 1 else prof["threshold"] - 1)
     return r
 
 
